@@ -8,14 +8,14 @@ Welcome to the Open AI Processor for Benthos! This processor allows you to enric
 
 ## Getting Started
 
-To get started you have to run benthos with custom processor. Since this processor is not adopted by benthos itself 
+To get started you have to run benthos with custom processor. Since this processor is not adopted by benthos itself
 you have to create a new benthos build with plugin registered
 
 ```go
 package main
 
 import (
-		"context"
+    "context"
 	"github.com/benthosdev/benthos/v4/public/service"
 
 	_ "github.com/benthosdev/benthos/v4/public/components/all"

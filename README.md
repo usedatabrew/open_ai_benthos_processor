@@ -36,10 +36,9 @@ pipeline:
   label: open_ai_processor
   processors:
     - open_ai:
-        source_field: ""
-        target_field: ""
-        prompt: ""
-        api_url: "https://api.openai.com/v1/completions"
+        source_field: "comment"
+        target_field: "ai_processed_comment"
+        prompt: "Check the field for hateful speech"
         api_key: ""
         model: "gpt-3.5-turbo-instruct"
 ```

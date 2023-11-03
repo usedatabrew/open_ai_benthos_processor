@@ -2,7 +2,10 @@ module github.com/usedatabrew/open_ai_benthos_processor
 
 go 1.21.3
 
-require github.com/benthosdev/benthos/v4 v4.23.0
+require (
+	github.com/benthosdev/benthos/v4 v4.23.0
+	github.com/sashabaranov/go-openai v1.16.0
+)
 
 require (
 	cuelang.org/go v0.6.0 // indirect

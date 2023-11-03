@@ -16,11 +16,11 @@ package main
 
 import (
     "context"
-	"github.com/benthosdev/benthos/v4/public/service"
+    "github.com/benthosdev/benthos/v4/public/service"
 
-	_ "github.com/benthosdev/benthos/v4/public/components/all"
-	// import open_ai processor
-	_ "github.com/usedatabrew/open_ai_benthos_processor"
+    _ "github.com/benthosdev/benthos/v4/public/components/all"
+    // import open_ai processor
+    _ "github.com/usedatabrew/open_ai_benthos_processor"
 )
 
 func main() {

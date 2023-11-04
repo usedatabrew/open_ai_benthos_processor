@@ -59,7 +59,7 @@ func newOpenAiProcessor(conf *service.ParsedConfig, metrics *service.Metrics) (*
 		return nil, err
 	}
 
-	apiEndpoint, err = conf.FieldString("source_field")
+	apiEndpoint, err = conf.FieldString("api_endpoint")
 
 	if err != nil {
 		return nil, err
@@ -128,7 +128,7 @@ func (o *openAiProcessor) Process(ctx context.Context, m *service.Message) (serv
 		return []*service.Message{m}, nil
 	}
 
-	prompt := fmt.Sprintf("Take the data: %s and respond after doing following: %s .", value, o.prompt)
+	prompt := fmt.Sprintf("Take the data: '%s' and respond after doing following: '%s' .", value, o.prompt)
 
 	resp, err := o.client.Ask(prompt)
 

@@ -3,6 +3,9 @@ package open_api_benthos_processor
 import (
 	"context"
 	"fmt"
+	"strconv"
+	"strings"
+
 	"github.com/benthosdev/benthos/v4/public/service"
 	"github.com/sashabaranov/go-openai"
 )
@@ -94,7 +97,7 @@ func (o *openAiProcessor) Process(ctx context.Context, m *service.Message) (serv
 		return nil, err
 	}
 
-	value, ok := content.(map[string]interface{})[o.sourceField]
+	value, ok := getByKey(content, o.sourceField)
 
 	if !ok {
 		return []*service.Message{m}, nil
@@ -133,6 +136,36 @@ func (o *openAiProcessor) Process(ctx context.Context, m *service.Message) (serv
 	m.SetStructured(payload)
 
 	return []*service.Message{m}, nil
+}
+
+func getByKey(m interface{}, key string) (any, bool) {
+L:
+	for _, k := range strings.Split(key, ".") {
+		var v interface{}
+		switch m := m.(type) {
+		case map[string]interface{}:
+			v = m[k]
+		case []interface{}:
+			idx, err := strconv.Atoi(k)
+			if err != nil || idx > len(m) {
+				break L
+			}
+			v = m[idx]
+		default:
+			break L
+		}
+		switch v := v.(type) {
+		case map[string]interface{}:
+			m = v
+		case []interface{}:
+			m = v
+		case string:
+			return v, true
+		default:
+			break L
+		}
+	}
+	return nil, false
 }
 
 func (*openAiProcessor) Close(ctx context.Context) error {

@@ -40,5 +40,7 @@ pipeline:
         target_field: "ai_processed_comment"
         prompt: "Check the field for hateful speech"
         api_key: ""
+        api_endpoint: "" ## Optional for azure driver
+        driver: "azure" ## azure or openai
         model: "gpt-3.5-turbo-instruct"
 ```

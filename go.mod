@@ -3,12 +3,15 @@ module github.com/usedatabrew/open_ai_benthos_processor
 go 1.21.3
 
 require (
+	github.com/Azure/azure-sdk-for-go/sdk/ai/azopenai v0.3.0
+	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.8.0
 	github.com/benthosdev/benthos/v4 v4.23.0
 	github.com/sashabaranov/go-openai v1.16.0
 )
 
 require (
 	cuelang.org/go v0.6.0 // indirect
+	github.com/Azure/azure-sdk-for-go/sdk/internal v1.3.0 // indirect
 	github.com/Jeffail/gabs/v2 v2.7.0 // indirect
 	github.com/OneOfOne/xxhash v1.2.8 // indirect
 	github.com/aymerick/douceur v0.2.0 // indirect

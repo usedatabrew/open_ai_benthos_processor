@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/benthosdev/benthos/v4/public/service"
-	"github.com/sashabaranov/go-openai"
 )
 
 var openAiProcessorConfigSpec = service.NewConfigSpec().
@@ -16,14 +15,19 @@ var openAiProcessorConfigSpec = service.NewConfigSpec().
 	Field(service.NewStringField("target_field")).
 	Field(service.NewStringField("prompt")).
 	Field(service.NewStringField("api_key")).
-	Field(service.NewStringField("model"))
+	Field(service.NewStringField("model")).
+	Field(service.NewStringField("api_endpoint").Default("none")).
+	Field(service.NewStringField("driver"))
 
 type openAiProcessor struct {
-	sourceField   string
-	targetField   string
-	client        *openai.Client
-	model         string
-	prompt        string
+	sourceField string
+	targetField string
+	client      AiProcessor
+	model       string
+	prompt      string
+	apiEndpoint string
+	// driver can be azure or openai
+	driver        string
 	metricCounter *service.MetricCounter
 }
 
@@ -48,6 +52,8 @@ func newOpenAiProcessor(conf *service.ParsedConfig, metrics *service.Metrics) (*
 		model       string
 		apiKey      string
 		prompt      string
+		driver      string
+		apiEndpoint string
 	)
 
 	sourceField, err := conf.FieldString("source_field")
@@ -56,7 +62,19 @@ func newOpenAiProcessor(conf *service.ParsedConfig, metrics *service.Metrics) (*
 		return nil, err
 	}
 
+	apiEndpoint, err = conf.FieldString("api_endpoint")
+
+	if err != nil {
+		return nil, err
+	}
+
 	targetField, err = conf.FieldString("target_field")
+
+	if err != nil {
+		return nil, err
+	}
+
+	driver, err = conf.FieldString("driver")
 
 	if err != nil {
 		return nil, err
@@ -80,12 +98,22 @@ func newOpenAiProcessor(conf *service.ParsedConfig, metrics *service.Metrics) (*
 		return nil, err
 	}
 
+	var aiDriver AiProcessor
+	switch driver {
+	case "azure":
+		aiDriver = NewAzureProcessor(apiKey, apiEndpoint)
+	case "openai":
+		aiDriver = NewOpenAIProcessor(apiKey, model)
+	}
+
 	return &openAiProcessor{
 		sourceField:   sourceField,
 		targetField:   targetField,
-		client:        openai.NewClient(apiKey),
+		client:        aiDriver,
 		model:         model,
 		prompt:        prompt,
+		driver:        driver,
+		apiEndpoint:   apiEndpoint,
 		metricCounter: metrics.NewCounter("open_ai_request"),
 	}, nil
 }
@@ -103,20 +131,9 @@ func (o *openAiProcessor) Process(ctx context.Context, m *service.Message) (serv
 		return []*service.Message{m}, nil
 	}
 
-	prompt := fmt.Sprintf("Take the data: %s and respond after doing following: %s .", value, o.prompt)
+	prompt := fmt.Sprintf("Take the data: '%s' and respond after doing following: '%s' .", value, o.prompt)
 
-	resp, err := o.client.CreateChatCompletion(
-		context.Background(),
-		openai.ChatCompletionRequest{
-			Model: o.model,
-			Messages: []openai.ChatCompletionMessage{
-				{
-					Role:    openai.ChatMessageRoleUser,
-					Content: prompt,
-				},
-			},
-		},
-	)
+	resp, err := o.client.Ask(prompt)
 
 	if err != nil {
 		fmt.Printf("ChatCompletion error: %v\n", err)
@@ -127,7 +144,7 @@ func (o *openAiProcessor) Process(ctx context.Context, m *service.Message) (serv
 
 	payload := make(map[string]interface{})
 
-	payload[o.targetField] = resp.Choices[0].Message.Content
+	payload[o.targetField] = resp
 
 	for k, v := range content.(map[string]interface{}) {
 		payload[k] = v
@@ -168,6 +185,6 @@ L:
 	return nil, false
 }
 
-func (*openAiProcessor) Close(ctx context.Context) error {
+func (o *openAiProcessor) Close(ctx context.Context) error {
 	return nil
 }
